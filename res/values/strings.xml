@@ -2,5 +2,6 @@
 <resources>
 
     <string name="app_name">IOCipherCamera</string>
-
+     <string name="voice_command">private eye</string>
+    
 </resources>

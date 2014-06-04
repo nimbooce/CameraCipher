@@ -20,6 +20,7 @@ import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -32,6 +33,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
@@ -39,6 +41,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.google.android.glass.touchpad.Gesture;
+import com.google.android.glass.touchpad.GestureDetector;
 
 public class GalleryActivity extends ListActivity {
 	private final static String TAG = "FileBrowser";
@@ -50,6 +55,9 @@ public class GalleryActivity extends ListActivity {
 	private String dbFile;
 	private String root = "/";
 	private VirtualFileSystem vfs;
+	
+    private GestureDetector mGestureDetector;
+
 
 	/** Called when the activity is first created. */
 
@@ -73,6 +81,9 @@ public class GalleryActivity extends ListActivity {
 		setContentView(R.layout.main);
 		fileInfo = (TextView) findViewById(R.id.info);
 		dbFile = getDir("vfs", MODE_PRIVATE).getAbsolutePath() + "/myfiles.db";
+		
+        mGestureDetector = createGestureDetector(this);
+
 	}
 
 	protected void onResume() {
@@ -214,6 +225,7 @@ public class GalleryActivity extends ListActivity {
 									public void onClick(DialogInterface dialog,
 											int which) {
 										// TODO Auto-generated method stub
+										
 
 									}
 								}).show();
@@ -231,36 +243,8 @@ public class GalleryActivity extends ListActivity {
 						// @Override
 						public void onClick(DialogInterface dialog,
 								int which) {
-							try {
-								String fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
-								String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension);
-								if (fileExtension.equals("ts"))
-									mimeType = "application/mpeg*";
-								
-								if (mimeType == null)
-									mimeType = "application/octet-stream";
-	
-								if (mimeType.startsWith("image"))
-								{
-									 Intent intent = new Intent(GalleryActivity.this,ImageViewerActivity.class);
-									  intent.setType(mimeType);
-									  intent.putExtra("vfs", file.getAbsolutePath());
-									  startActivity(intent);	
-								}
-								else if (fileExtension.equals("ts") || mimeType.startsWith("video"))
-								{
-									shareVideoUsingStream(file, mimeType);
-								}
-								else {
-						          Intent intent = new Intent(Intent.ACTION_VIEW);													
-								  intent.setDataAndType(uri, mimeType);
-								  startActivity(intent);
-								}
-								 
-								
-							} catch (ActivityNotFoundException e) {
-								Log.e(TAG, "No relevant Activity found", e);
-							}
+							
+							showItem(uri, file);
 						}
 					})
 					.setNegativeButton("Delete",
@@ -303,6 +287,40 @@ public class GalleryActivity extends ListActivity {
 							}).show();
 		}
 		
+	}
+	
+	private void showItem (Uri uri, File file)
+	{
+		try {
+			String fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
+			String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension);
+			if (fileExtension.equals("ts"))
+				mimeType = "application/mpeg*";
+			
+			if (mimeType == null)
+				mimeType = "application/octet-stream";
+
+			if (mimeType.startsWith("image"))
+			{
+				 Intent intent = new Intent(GalleryActivity.this,ImageViewerActivity.class);
+				  intent.setType(mimeType);
+				  intent.putExtra("vfs", file.getAbsolutePath());
+				  startActivity(intent);	
+			}
+			else if (fileExtension.equals("ts") || mimeType.startsWith("video"))
+			{
+				shareVideoUsingStream(file, mimeType);
+			}
+			else {
+	          Intent intent = new Intent(Intent.ACTION_VIEW);													
+			  intent.setDataAndType(uri, mimeType);
+			  startActivity(intent);
+			}
+			 
+			
+		} catch (ActivityNotFoundException e) {
+			Log.e(TAG, "No relevant Activity found", e);
+		}
 	}
 	
 	private ServerSocket ss = null;
@@ -497,5 +515,83 @@ public class GalleryActivity extends ListActivity {
 			getFileList(root);
 	}
 	
+	 private GestureDetector createGestureDetector(Context context) {
+		    GestureDetector gestureDetector = new GestureDetector(context);
+		        //Create a base listener for generic gestures
+		        gestureDetector.setBaseListener( new GestureDetector.BaseListener() {
+		            @Override
+		            public boolean onGesture(Gesture gesture) {
+		                if (gesture == Gesture.TAP) {
+
+		                	int position = getListView().getSelectedItemPosition();
+		                	if (position < 0)
+		                	{
+		                		position = 0;
+		                		getListView().setSelection(position);
+		                	}
+		                	
+		                	final File file = new File(path.get(position));
+		        			final Uri uri = Uri.parse(IOCipherContentProvider.FILES_URI + file.getName());
+		        			showItem(uri, file);
+		                	
+		                
+		                    return false;
+		                } else if (gesture == Gesture.TWO_TAP) {
+		                	
+		                	int sel = getListView().getSelectedItemPosition();
+		                	
+		                	sel++;
+		                	
+		                	if (sel >= path.size())
+		                		sel = 0;
+		                	
+		                	getListView().setSelection(sel);
+
+		                    return false;
+		                } else if (gesture == Gesture.SWIPE_RIGHT) {
+		                    
+
+		                	Intent intent = new Intent(GalleryActivity.this,VideoRecorderActivity.class);
+		                	intent.putExtra("basepath", "/");
+		                	startActivityForResult(intent, 1);
+		                	
+		                	
+		                    return true;
+		                } else if (gesture == Gesture.SWIPE_LEFT) {
+		                	Intent intent = new Intent(GalleryActivity.this,SecureSelfieActivity.class);
+		                	intent.putExtra("basepath", "/");
+		                	startActivityForResult(intent, 1);
+		                	
+		                    return true;
+		                }
+		                return false;
+		            }
+		        });
+		        gestureDetector.setFingerListener(new GestureDetector.FingerListener() {
+		            @Override
+		            public void onFingerCountChanged(int previousCount, int currentCount) {
+		              // do something on finger count changes
+		            }
+		        });
+		        gestureDetector.setScrollListener(new GestureDetector.ScrollListener() {
+		            @Override
+		            public boolean onScroll(float displacement, float delta, float velocity) {
+		                // do something on scrolling
+		            	return false;
+		            }
+		        });
+		        return gestureDetector;
+		    }
+	 
+	 /*
+	     * Send generic motion events to the gesture detector
+	     */
+	    @Override
+	    public boolean onGenericMotionEvent(MotionEvent event) {
+	        if (mGestureDetector != null) {
+	            return mGestureDetector.onMotionEvent(event);
+	        }
+	        return false;
+	    }
 	
 }

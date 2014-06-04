@@ -118,11 +118,12 @@ public class SurfaceGrabberActivity extends Activity implements OnClickListener,
 					//params.setPictureSize(size.width,size.height);
 					//params.setJpegThumbnailSize(128,128);
 //					params.setPreviewSize(size.width/2,size.height/2); 
-				 
+				
+				 /**
 				 if (this.getCameraDirection() == CameraInfo.CAMERA_FACING_BACK)
 				 {
 					 params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-				 }
+				 }*/
 									
 					camera.setParameters(params);
 

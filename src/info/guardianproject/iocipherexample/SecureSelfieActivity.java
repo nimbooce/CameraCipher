@@ -34,8 +34,8 @@ public class SecureSelfieActivity extends SurfaceGrabberActivity {
 	
 	@Override
 	protected int getCameraDirection() {
-		return CameraInfo.CAMERA_FACING_FRONT;
-		//return CameraInfo.CAMERA_FACING_BACK;
+		//return CameraInfo.CAMERA_FACING_FRONT;
+		return CameraInfo.CAMERA_FACING_BACK;
 	}
 
 	@Override
