@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+
 public class VideoViewerActivity extends Activity implements
 OnBufferingUpdateListener, OnCompletionListener, OnPreparedListener,
 OnVideoSizeChangedListener, SurfaceHolder.Callback {

@@ -21,12 +21,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
  <item android:id="@+id/menu_camera"
-        android:title="Selfie"
+        android:title="take a picture"
          android:showAsAction="always"
          />
 
  <item android:id="@+id/menu_video"
-        android:title="Video"
+        android:title="take a video"
          android:showAsAction="always"
          />
 </menu>
