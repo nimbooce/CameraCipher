@@ -20,6 +20,11 @@
 <menu 
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+     <item android:id="@+id/menu_view"
+        android:title="view item"
+         android:showAsAction="always"
+         />
+     
  <item android:id="@+id/menu_camera"
         android:title="take a picture"
          android:showAsAction="always"

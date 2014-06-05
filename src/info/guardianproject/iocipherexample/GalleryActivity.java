@@ -54,6 +54,7 @@ public class GalleryActivity extends Activity {
     private List<Card> mCards;
     private CardScrollView mCardScrollView;
 
+    private boolean isUnlocked = false;
 
 
 	/** Called when the activity is first created. */
@@ -81,11 +82,16 @@ public class GalleryActivity extends Activity {
 	        // Handle item selection. Menu items typically start another
 	        // activity, start a service, or broadcast another intent.
 	        switch (item.getItemId()) {
+	        case R.id.menu_view:
+	        	final File file = new File(path.get(mCardScrollView.getSelectedItemPosition()));
+    			final Uri uri = Uri.parse(IOCipherContentProvider.FILES_URI + file.getName());
+    			showItem(uri, file);
+	        		return true;
 	            case R.id.menu_camera:
 	            	startPhotoCamera();
 	                return true;
 	            case R.id.menu_video:
-	            	startPhotoCamera();
+	            	startVideoCamera();
 	                return true;
 	            default:
 	                return super.onOptionsItemSelected(item);
@@ -128,14 +134,51 @@ public class GalleryActivity extends Activity {
 
 	protected void onResume() {
 		super.onResume();
-		vfs = new VirtualFileSystem(dbFile);
-		// TODO don't use a hard-coded password! prompt for the password
-		vfs.mount("my fake password");
+		
+		if (isUnlocked)
+		{
+			loadCards();
+		}
+		else
+		{
+			showLockScreen();
+		}
+	}
+
+	private void showLockScreen ()
+	{
+		mCardScrollView = new CardScrollView(this);
+
+		mCards = new ArrayList<Card>();
+		Card card = new Card(this);
+        card.setText("Tap your pattern to unlock...");
+        mCards.add(card);
+    		
+        ExampleCardScrollAdapter adapter = new ExampleCardScrollAdapter();
+        mCardScrollView.setAdapter(adapter);
+        mCardScrollView.activate();
+        mCardScrollView.setOnItemClickListener(new OnItemClickListener()
+		{
+
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1,
+					int arg2, long arg3) {
+
+				passbuffer.append("a");
+			}
+			
+		});
+        setContentView(mCardScrollView);
+        mCardScrollView = null;
+	}
+	private void loadCards ()
+	{
 		getFileList(root);
 		
 		if (mCardScrollView == null)
 		{
 			mCardScrollView = new CardScrollView(this);
+			
 			
 			mCardScrollView.setOnItemClickListener(new OnItemClickListener()
 			{
@@ -143,29 +186,45 @@ public class GalleryActivity extends Activity {
 				@Override
 				public void onItemClick(AdapterView<?> arg0, View arg1,
 						int arg2, long arg3) {
-					final File file = new File(path.get(arg2));
-        			final Uri uri = Uri.parse(IOCipherContentProvider.FILES_URI + file.getName());
-        			showItem(uri, file);					
+
+                	openOptionsMenu();					
 				}
 				
 			});
-								
 					
-						
+			if (mCards.size() == 0)
+			{
+				Card card = new Card(this);
+		        card.setText("Welcome to Private Eye - keeping your pics private!");
+		        mCards.add(card);
+		        
+		        card = new Card(this);
+		        card.setText("Tap to take an encrypted photo or video");
+		        mCards.add(card);
+		        
+
+		        card = new Card(this);
+		        card.setText("All media is stored securely, only for you!");
+		        mCards.add(card);
+			}
+			
 	        ExampleCardScrollAdapter adapter = new ExampleCardScrollAdapter();
 	        mCardScrollView.setAdapter(adapter);
 	        mCardScrollView.activate();
 	        setContentView(mCardScrollView);
 		}
+		else
+		{
+
+	        ExampleCardScrollAdapter adapter = new ExampleCardScrollAdapter();
+	        mCardScrollView.setAdapter(adapter);
+	        
+		}
 	}
 
 	protected void onDestroy() {
 		super.onDestroy();
-		try
-		{
-			vfs.mount("XXXXXXXXXXXXXXX"); //this ensures the old password is cleared
-		}catch(IllegalArgumentException iae){}
-		//vfs.unmount();
+		vfs.unmount();
 	}
 	
 
@@ -190,7 +249,7 @@ public class GalleryActivity extends Activity {
 			path.add(file.getParent()); // back one level
 		}
 
-		for (int i = 0; i < files.length; i++) {
+		for (int i = files.length-1; i >= 0 ; i--) {
 
 			File fileItem = files[i];
 			path.add(fileItem.getPath());
@@ -430,6 +489,19 @@ public class GalleryActivity extends Activity {
     	startActivityForResult(intent, 1);
 	}
 	
+	private void unlock (String password)
+	{
+		isUnlocked = true;
+		
+		vfs = new VirtualFileSystem(dbFile);
+		// TODO don't use a hard-coded password! prompt for the password
+		vfs.mount(password);
+		
+		loadCards();
+	}
+	
+	private StringBuffer passbuffer = new StringBuffer ();
+	
 	 private GestureDetector createGestureDetector(Context context) {
 		    GestureDetector gestureDetector = new GestureDetector(context);
 		        //Create a base listener for generic gestures
@@ -437,18 +509,25 @@ public class GalleryActivity extends Activity {
 		            @Override
 		            public boolean onGesture(Gesture gesture) {
 		                if (gesture == Gesture.TAP) {
-
+		                	
+		                	passbuffer.append("a");
+		                	
 		                    return true;
 		                } else if (gesture == Gesture.TWO_TAP) {
 		                	
-		                	openOptionsMenu();
+		                	unlock(passbuffer.toString());
+		                	
 		                    return true;
 		                } else if (gesture == Gesture.SWIPE_RIGHT) {
 		                    
+		                	passbuffer.append("b");
+		                	
 
 		                	
 		                    return true;
 		                } else if (gesture == Gesture.SWIPE_LEFT) {
+		                	
+		                	passbuffer.append("c");
 		                	
 		                	
 		                    return true;
