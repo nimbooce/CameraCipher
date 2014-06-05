@@ -136,7 +136,12 @@ public class SurfaceGrabberActivity extends Activity implements OnClickListener,
 	@Override
 	public void onPause() {
 		if(camera != null)
+		{
+
+			camera.stopPreview();
 			camera.release();
+			camera = null;
+		}
 
 		super.onPause();
 	}
