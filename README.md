@@ -13,6 +13,11 @@ This example does not handle proper password/phrase management. Please see our C
 ![Screenshot 1](screenshot1.png)
 ![Screenshot 2](screenshot2.png)
 
+There is also a "google_glass" branch of this project for a native Glassware app called "Private Eye", that demonstrates how encrypted photo and video capture can also work on (you guesed it), Google Glass! The important aspect of that is how this keeps th emedia from showing up in your general purpose timeline on your Glass, stops it from being synced to Google+, and adds another layer of access authentication beyond what you have (or most likely don't have) on your Glass.
+
+![privateeye1.png] ![privateeye2.png] ![privateeye3.png] ![privateeye4.png] ![privateeye4.png]
+
+
 Please report bugs here:
 https://dev.guardianproject.info/projects/iocipher/issues
 
