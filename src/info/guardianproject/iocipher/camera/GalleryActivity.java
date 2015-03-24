@@ -618,7 +618,7 @@ public class GalleryActivity extends Activity  implements ICacheWordSubscriber {
 				fis.close();
 				mBitCache.put(fileImage[0].getAbsolutePath(), b);
 				
-				//VirtualFileSystem.get().detachThread();
+				VirtualFileSystem.get().detachThread();
 				
 				return b;
 			} catch (Exception e) {
