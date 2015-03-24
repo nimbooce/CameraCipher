@@ -5,6 +5,7 @@ import info.guardianproject.cacheword.ICacheWordSubscriber;
 import info.guardianproject.iocipher.File;
 import info.guardianproject.iocipher.FileInputStream;
 import info.guardianproject.iocipher.FileOutputStream;
+import info.guardianproject.iocipher.VirtualFileSystem;
 import info.guardianproject.iocipher.camera.io.IOCipherContentProvider;
 import info.guardianproject.iocipher.camera.viewer.ImageViewerActivity;
 import info.guardianproject.iocipher.camera.viewer.MjpegViewerActivity;
@@ -27,6 +28,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
@@ -58,7 +60,7 @@ public class GalleryActivity extends Activity  implements ICacheWordSubscriber {
 	
 	private GridView gridview;
 	private HashMap<String,Bitmap> mBitCache = new HashMap<String,Bitmap>();
-	private HashMap<String,BitmapWorkerThread> mBitLoaders = new HashMap<String,BitmapWorkerThread>();
+	private HashMap<String,BitmapWorkerTask> mBitLoaders = new HashMap<String,BitmapWorkerTask>();
 	
 	private CacheWordHandler mCacheWord;
 	
@@ -590,9 +592,9 @@ public class GalleryActivity extends Activity  implements ICacheWordSubscriber {
 			
 			if (b == null && mBitLoaders.get(fileImage.getAbsolutePath())==null)
 			{
-				BitmapWorkerThread bwt = new BitmapWorkerThread(fileImage);
+				BitmapWorkerTask bwt = new BitmapWorkerTask();
 				mBitLoaders.put(fileImage.getAbsolutePath(),bwt);
-				bwt.start();
+				bwt.execute(fileImage);
 				
 			}
 		}
@@ -600,42 +602,7 @@ public class GalleryActivity extends Activity  implements ICacheWordSubscriber {
 		return b;
 	}
 	
-	class BitmapWorkerThread extends Thread
-	{
-		private File fileImage;
-		
-		public BitmapWorkerThread (File fileImage)
-		{
-			this.fileImage = fileImage;
-		}
-		
-		public void run ()
-		{
-			BitmapFactory.Options bounds = new BitmapFactory.Options();	    
-			bounds.inSampleSize = 8;	 	    
-			Bitmap b;
-			try {
-				FileInputStream fis = new FileInputStream(fileImage);
-				b = BitmapFactory.decodeStream(fis, null, bounds);
-				fis.close();
-				mBitCache.put(fileImage.getAbsolutePath(), b);
-				mBitLoaders.remove(fileImage.getAbsolutePath());
-
-				h.post(new Runnable()
-				{
-					public void run ()
-					{
-						((IconicList)gridview.getAdapter()).notifyDataSetChanged();
-					}
-				});
-		    
-			} catch (Exception e) {
-				Log.e(TAG,"error decoding bitmap preview",e);
-			}
-		}
-	}
 	
-	/*
 	class BitmapWorkerTask extends AsyncTask<File, Void, Bitmap> {
 
 	    // Decode image in background.
@@ -651,10 +618,13 @@ public class GalleryActivity extends Activity  implements ICacheWordSubscriber {
 				fis.close();
 				mBitCache.put(fileImage[0].getAbsolutePath(), b);
 				
+				//VirtualFileSystem.get().detachThread();
+				
 				return b;
 			} catch (Exception e) {
 				Log.e(TAG,"error decoding bitmap preview",e);
 			}
+			
 			
 	        return null;
 	        
@@ -662,11 +632,13 @@ public class GalleryActivity extends Activity  implements ICacheWordSubscriber {
 
 	    // Once complete, see if ImageView is still around and set bitmap.
 	    @Override
-	    protected void onPostExecute(Bitmap bitmap) {	    	
-	    	((IconicList)gridview.getAdapter()).notifyDataSetChanged();
+	    protected void onPostExecute(Bitmap bitmap) {	  
+	    	
+	    	if (bitmap != null)
+	    		((IconicList)gridview.getAdapter()).notifyDataSetChanged();
 			
 	    }
-	}*/
+	}
 
 
 	
