@@ -92,8 +92,10 @@ public class VideoCameraActivity extends CameraBaseActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		
+		getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
 		super.onCreate(savedInstanceState);
-		
+
 		mFileBasePath = getIntent().getStringExtra("basepath");
 		
 		isRequest = getIntent().getAction() != null && getIntent().getAction().equals(MediaStore.ACTION_VIDEO_CAPTURE);
@@ -104,6 +106,14 @@ public class VideoCameraActivity extends CameraBaseActivity {
 	protected int getLayout()
 	{
 		return R.layout.base_camera;
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		
+		getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
 	}
 
 	private float mDownX = -1,mLastX = -1;
@@ -211,7 +221,7 @@ public class VideoCameraActivity extends CameraBaseActivity {
 		
 		lastTime = System.currentTimeMillis();
 		
-		String fileName = "video" + new java.util.Date().getTime() + ".mp4";
+		String fileName = "secure_video_" + new java.util.Date().getTime() + ".mp4";
 		fileOut = new info.guardianproject.iocipher.File(mFileBasePath,fileName);
 		
 		mResultList.add(fileOut.getAbsolutePath());
@@ -233,7 +243,7 @@ public class VideoCameraActivity extends CameraBaseActivity {
 			//start capture
 			startAudioRecording();
 			
-			progress.setText("[REC]");
+			progress.setText(R.string._rec_);
 
 		} catch (Exception e) {
 			Log.d("Video","error starting video",e);
@@ -244,7 +254,7 @@ public class VideoCameraActivity extends CameraBaseActivity {
 	
 	private void stopRecording ()
 	{
-		progress.setText("[SAVING]");
+		progress.setText(R.string._saving_);
 		h.sendEmptyMessageDelayed(1, 2000);
 		progress.setText("");
 		
@@ -269,7 +279,7 @@ public class VideoCameraActivity extends CameraBaseActivity {
 			overlayView.setBackgroundResource(R.color.flash);
 			
 			long mTime = System.currentTimeMillis();
-			fileSecurePicture = new File(mFileBasePath,"secureselfie_" + mTime + ".jpg");
+			fileSecurePicture = new File(mFileBasePath,"secure_image_" + mTime + ".jpg");
 
 			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileSecurePicture));
 			out.write(data);
