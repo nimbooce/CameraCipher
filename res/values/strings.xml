@@ -30,4 +30,8 @@
 	
 	<string name="orbot_doesn_t_appear_to_be_running_would_you_like_to_start_it_up_and_connect_to_tor_">Orbot doesn\'t appear to be running. Would you like to start it up and connect to Tor?</string>
 	
+	<string name="_rec_">[REC]</string>
+	
+	<string name="_saving_">[SAVING]</string>
+	
 </resources>
