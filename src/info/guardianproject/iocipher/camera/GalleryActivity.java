@@ -148,10 +148,7 @@ public class GalleryActivity extends Activity  implements ICacheWordSubscriber {
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-
-
         super.onConfigurationChanged(newConfig);
-
     }
 
     protected void onResume() {
