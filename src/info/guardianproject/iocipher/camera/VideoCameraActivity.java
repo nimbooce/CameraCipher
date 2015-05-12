@@ -22,14 +22,12 @@ import info.guardianproject.iocipher.camera.io.IOCipherFileChannelWrapper;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 
-import org.jcodec.common.ArrayUtil;
 import org.jcodec.common.SeekableByteChannel;
 
 import android.app.Activity;
@@ -47,6 +45,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -139,7 +138,6 @@ public class VideoCameraActivity extends CameraBaseActivity {
             
             mInTopHalf = mDownY < (mLastHeight/2);
 
-            toggleCamera(mInTopHalf);
             
             break;
         case MotionEvent.ACTION_CANCEL:
@@ -148,7 +146,14 @@ public class VideoCameraActivity extends CameraBaseActivity {
                
             	//take a picture
         		mPreviewing = false;
-        		camera.takePicture(null, null, this);
+        		try
+        		{
+        			camera.takePicture(null, null, this);
+        		}
+        		catch (RuntimeException re)
+        		{
+        			//don't crash if the picture didn't work
+        		}
                 handler.removeCallbacks(mLongPressed);
             	
             }
@@ -162,7 +167,6 @@ public class VideoCameraActivity extends CameraBaseActivity {
         	
         	mLastX = ev.getX();
         	mLastY = ev.getY();
-        	
             
             mInTopHalf = mLastY < (mDownY-100);
 
@@ -172,6 +176,7 @@ public class VideoCameraActivity extends CameraBaseActivity {
                 mIsOnClick = false;
                 
             }
+            
             break;
         default:
             break;
@@ -254,6 +259,11 @@ public class VideoCameraActivity extends CameraBaseActivity {
 	
 	private void stopRecording ()
 	{
+		Intent intent = new Intent("new-media");
+		  // You can also include some extra data.
+		  intent.putExtra("media", fileOut.getAbsolutePath());
+		  LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+		  
 		progress.setText(R.string._saving_);
 		h.sendEmptyMessageDelayed(1, 2000);
 		progress.setText("");
@@ -287,6 +297,12 @@ public class VideoCameraActivity extends CameraBaseActivity {
 			out.close();
 
 			mResultList.add(fileSecurePicture.getAbsolutePath());
+			
+			Intent intent = new Intent("new-media");
+			  // You can also include some extra data.
+			  intent.putExtra("media", fileSecurePicture.getAbsolutePath());
+			  LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+			  
 
 			Intent intentResult = new Intent().putExtra(MediaStore.EXTRA_OUTPUT, mResultList.toArray(new String[mResultList.size()]));			
 			setResult(Activity.RESULT_OK, intentResult);

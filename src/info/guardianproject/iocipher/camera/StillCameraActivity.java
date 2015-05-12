@@ -25,6 +25,7 @@ import android.graphics.Color;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.content.LocalBroadcastManager;
 
 public class StillCameraActivity extends CameraBaseActivity {
 	
@@ -63,6 +64,11 @@ public class StillCameraActivity extends CameraBaseActivity {
 
 			mResultList.add(fileSecurePicture.getAbsolutePath());
 
+			Intent intent = new Intent("new-media");
+			  // You can also include some extra data.
+			  intent.putExtra("media", fileSecurePicture.getAbsolutePath());
+			  LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+			  
 			Intent intentResult = new Intent().putExtra(MediaStore.EXTRA_OUTPUT, mResultList.toArray(new String[mResultList.size()]));			
 			setResult(Activity.RESULT_OK, intentResult);
 			
